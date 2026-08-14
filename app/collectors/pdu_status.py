@@ -5,51 +5,40 @@ from app.config import settings
 
 logger = logging.getLogger(__name__)
 
+SERVER_COUNT = 6
+# 서버 i(0-based)가 붙어 있는 PDU 이름. 서버 6대 / PDU 3대 → 2대씩 배분.
+SERVER_PDU_MAP = [f"PDU-{i // 2 + 1}" for i in range(SERVER_COUNT)]
+
 
 async def read_pdu_status() -> dict:
-    """PDU 화면: PDU 전력 상태."""
+    """PDU 화면: 서버/TANK+CDU/전체 사용 전력 합계 + 서버별 PDU 연결 상태."""
     if settings.MOCK_MODE:
+        servers = []
+        for i in range(SERVER_COUNT):
+            power_kw = round(random.uniform(0.3, 0.55), 2)
+            current_a = round(power_kw * 1000 / 208, 2)
+            servers.append(
+                {
+                    "name": f"서버 {i + 1}",
+                    "pdu": SERVER_PDU_MAP[i],
+                    "connected": True,
+                    "power_kw": power_kw,
+                    "current_a": current_a,
+                }
+            )
+
+        server_power_kw = round(sum(s["power_kw"] for s in servers), 2)
+        tank_cdu_power_kw = round(random.uniform(3.0, 5.0), 2)
+        total_power_kw = round(server_power_kw + tank_cdu_power_kw, 2)
+
         return {
-            "voltage": round(random.uniform(210, 230), 1),
-            "current": round(random.uniform(1, 8), 2),
-            "power_w": round(random.uniform(300, 1200), 1),
             "connected": True,
+            "server_power_kw": server_power_kw,
+            "tank_cdu_power_kw": tank_cdu_power_kw,
+            "total_power_kw": total_power_kw,
+            "servers": servers,
         }
 
-    from pysnmp.hlapi.v3arch.asyncio import (
-        CommunityData,
-        ContextData,
-        ObjectIdentity,
-        ObjectType,
-        SnmpEngine,
-        UdpTransportTarget,
-        get_cmd,
-    )
-
-    # TODO: 실제 PDU 벤더의 전압/전류/전력 OID로 교체
-    oids = {
-        "voltage": "1.3.6.1.4.1.0.0.1.0",
-        "current": "1.3.6.1.4.1.0.0.2.0",
-        "power_w": "1.3.6.1.4.1.0.0.3.0",
-    }
-
-    result = {}
-    try:
-        target = await UdpTransportTarget.create((settings.PDU_HOST, settings.PDU_SNMP_PORT))
-        for key, oid in oids.items():
-            error_indication, error_status, _, var_binds = await get_cmd(
-                SnmpEngine(),
-                CommunityData(settings.PDU_SNMP_COMMUNITY),
-                target,
-                ContextData(),
-                ObjectType(ObjectIdentity(oid)),
-            )
-            if error_indication or error_status:
-                raise RuntimeError(f"{key} 조회 실패: {error_indication or error_status}")
-            result[key] = float(var_binds[0][1])
-        result["connected"] = True
-    except Exception:
-        logger.exception("PDU SNMP 조회 오류")
-        result = {"connected": False}
-
-    return result
+    # TODO: 실제 PDU/서버 전력 미터링 방식(SNMP OID 또는 서버별 BMC PowerConsumedWatts)으로 교체
+    logger.warning("실제 PDU 서버 전력 조회는 아직 구현되지 않음")
+    return {"connected": False, "servers": []}

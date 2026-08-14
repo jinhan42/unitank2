@@ -29,11 +29,12 @@ class Settings(BaseSettings):
     COOLANT_MODBUS_HOST: str = "192.168.1.3"
     COOLANT_MODBUS_PORT: int = 502
 
-    # --- PDU (SNMP) ---
-    PDU_HOST: str = "192.168.1.210"
+    # --- PDU (SNMP) --- 탱크 제원상 3 x PDU 구성
+    PDU_HOSTS: list[str] = ["192.168.1.210", "192.168.1.211", "192.168.1.212"]
     PDU_SNMP_COMMUNITY: str = "public"
     PDU_SNMP_PORT: int = 161
-    PDU_OUTLET_INDEX: int = 1  # PWR 버튼이 차단할 아웃렛 번호
+    PDU_OUTLET_INDEX: int = 1  # PWR 버튼이 차단할 아웃렛 번호 (대표 PDU 기준)
+    PDU_LOAD_WARNING_PERCENT: float = 80.0  # 이 이상이면 상태를 "주의"로 표시
 
     DATA_POLL_INTERVAL_SEC: int = 5
 

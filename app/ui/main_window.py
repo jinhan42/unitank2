@@ -1,9 +1,6 @@
-import logging
-
 from PyQt6.QtWidgets import (
     QHBoxLayout,
     QMainWindow,
-    QMessageBox,
     QPushButton,
     QStackedWidget,
     QVBoxLayout,
@@ -11,13 +8,11 @@ from PyQt6.QtWidgets import (
 )
 
 from app.gpio_buttons import GpioButtonManager
-from app.pdu_control import shutdown_pdu_outlet, shutdown_raspberry_pi
 from app.ui.screen_info import InfoScreen
 from app.ui.screen_pdu import PduScreen
+from app.ui.screen_pwr import PowerControlScreen
 from app.ui.screen_server import ServerScreen
 from app.ui.screen_tank import TankScreen
-
-logger = logging.getLogger(__name__)
 
 
 class MainWindow(QMainWindow):
@@ -27,6 +22,7 @@ class MainWindow(QMainWindow):
 
         self._stack = QStackedWidget()
         self._screens = {
+            "pwr": PowerControlScreen(),
             "rst": ServerScreen(),
             "tank": TankScreen(),
             "pdu": PduScreen(),
@@ -46,7 +42,7 @@ class MainWindow(QMainWindow):
         self._show_screen("tank")
 
         self._gpio = GpioButtonManager(self)
-        self._gpio.pwr_pressed.connect(self.on_pwr_pressed)
+        self._gpio.pwr_pressed.connect(lambda: self._show_screen("pwr"))
         self._gpio.rst_pressed.connect(lambda: self._show_screen("rst"))
         self._gpio.tank_pressed.connect(lambda: self._show_screen("tank"))
         self._gpio.pdu_pressed.connect(lambda: self._show_screen("pdu"))
@@ -57,7 +53,7 @@ class MainWindow(QMainWindow):
         layout = QHBoxLayout(bar)
 
         buttons = [
-            ("PWR", self.on_pwr_pressed),
+            ("PWR", lambda: self._show_screen("pwr")),
             ("RST", lambda: self._show_screen("rst")),
             ("TANK", lambda: self._show_screen("tank")),
             ("PDU", lambda: self._show_screen("pdu")),
@@ -72,21 +68,6 @@ class MainWindow(QMainWindow):
 
     def _show_screen(self, name: str):
         self._stack.setCurrentWidget(self._screens[name])
-
-    def on_pwr_pressed(self):
-        reply = QMessageBox.question(
-            self,
-            "전원 종료 확인",
-            "CMC와 외부 장비 전원을 종료합니다.\n계속하시겠습니까?",
-            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-            QMessageBox.StandardButton.No,
-        )
-        if reply != QMessageBox.StandardButton.Yes:
-            return
-
-        logger.warning("PWR 버튼: 전원 종료 절차 시작")
-        shutdown_pdu_outlet()
-        shutdown_raspberry_pi()
 
     def closeEvent(self, event):
         self._gpio.close()
