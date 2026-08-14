@@ -57,11 +57,11 @@ class MainWindow(QMainWindow):
         layout = QHBoxLayout(bar)
 
         buttons = [
+            ("PWR", self.on_pwr_pressed),
             ("RST", lambda: self._show_screen("rst")),
             ("TANK", lambda: self._show_screen("tank")),
             ("PDU", lambda: self._show_screen("pdu")),
             ("INFO", lambda: self._show_screen("info")),
-            ("PWR", self.on_pwr_pressed),
         ]
         for label, handler in buttons:
             btn = QPushButton(label)
@@ -77,7 +77,7 @@ class MainWindow(QMainWindow):
         reply = QMessageBox.question(
             self,
             "전원 종료 확인",
-            "라즈베리파이와 외부 장비(PDU) 전원을 종료합니다.\n계속하시겠습니까?",
+            "CMC와 외부 장비 전원을 종료합니다.\n계속하시겠습니까?",
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
             QMessageBox.StandardButton.No,
         )

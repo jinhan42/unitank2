@@ -8,13 +8,15 @@
 
 ## 버튼 구성
 
+순서(왼쪽부터): **PWR / RST / TANK / PDU / INFO**
+
 | 버튼 | 동작 |
 |---|---|
-| **TANK** | 화면 전환 — 탱크 온도/유량 등 물리 센서 값 |
-| **RST** | 화면 전환 — 탱크 내부 서버(BMC) 상태 + 냉각유 흐름 상태 |
-| **PDU** | 화면 전환 — PDU 전력 상태 (전압/전류/전력) |
-| **INFO** | 화면 전환 — 라즈베리파이 시스템 정보 |
 | **PWR** | 실제 제어 액션 — 확인 팝업 후 (1) PDU 아웃렛 전원 차단 (2) 라즈베리파이 자체 종료 |
+| **RST** | 화면 전환 — 탱크 내부 서버(BMC) 상태 + 냉각유 흐름 상태 |
+| **TANK** | 화면 전환 — 탱크 온도/유량 등 물리 센서 값 |
+| **PDU** | 화면 전환 — PDU 전력 상태 (전압/전류/전력) |
+| **INFO** | 화면 전환 — 탱크 제원(모델명/치수/냉각유 용량 등 고정 스펙 정보) |
 
 터치스크린이므로 화면 하단 네비게이션 바를 터치해도 동일하게 동작한다 (물리 버튼과 병용).
 
@@ -36,13 +38,13 @@ app/
 ├── collectors/              # 장비별 데이터 수집 (async)
 │   ├── tank_sensor.py       #   TANK
 │   ├── server_status.py     #   RST
-│   ├── pdu_status.py        #   PDU
-│   └── system_info.py       #   INFO
+│   └── pdu_status.py        #   PDU
 └── ui/
     ├── main_window.py        # 네비게이션 바 + 화면 스택 + GPIO 연결
     ├── base_screen.py        # 주기 폴링 화면 베이스 클래스
     ├── async_worker.py       # QThread 기반 async 실행기
-    └── screen_*.py            # 화면별 위젯
+    ├── screen_info.py         # INFO: 탱크 제원 (정적 데이터, 폴링 없음)
+    └── screen_*.py            # 그 외 화면별 위젯
 ```
 
 ## 개발 (하드웨어 없이 PC에서 실행)
