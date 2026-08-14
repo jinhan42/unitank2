@@ -1,0 +1,19 @@
+[Unit]
+Description=UniTank 2 Kiosk App
+After=graphical.target
+Wants=graphical.target
+
+[Service]
+Type=simple
+User=uniwide
+WorkingDirectory=/home/uniwide/unitank2
+# 데스크톱 환경(X11/Wayland-labwc)에 맞게 조정할 것
+Environment=WAYLAND_DISPLAY=wayland-0
+Environment=XDG_RUNTIME_DIR=/run/user/1000
+Environment=PYTHONPATH=/home/uniwide/unitank2
+ExecStart=/home/uniwide/unitank2/venv/bin/python3 -m app.main
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=graphical.target
